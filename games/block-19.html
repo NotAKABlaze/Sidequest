@@ -32,8 +32,9 @@ input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size
 <body>
 <div class="wrap">
   <h1>🔢 Math Sprint</h1>
-  <div class="sub">Block 19 &middot; Answer 5 quick sums correctly (4/5 needed)</div>
-  <div id="game"><div id="q" style="font-size:1.6rem;font-weight:700;margin-bottom:12px;"></div>
+  <div class="sub">Block 19 &middot; Answer 5 quick sums correctly within 20 seconds (4/5 needed)</div>
+  <div id="game"><div style="margin-bottom:8px;">Time left: <span id="timerDisplay">20</span>s</div>
+<div id="q" style="font-size:1.6rem;font-weight:700;margin-bottom:12px;"></div>
 <input type="text" id="ans" placeholder="Answer">
 <div style="margin-top:12px;"><button id="submitBtn">Submit</button></div></div>
   <div class="msg" id="msg"></div>
@@ -54,6 +55,21 @@ function unlock(){
 let qnum=0, correct=0;
 const total=5;
 let currentAns=0;
+const ansInput = document.getElementById('ans');
+const submitBtn = document.getElementById('submitBtn');
+const timerEl = document.getElementById('timerDisplay');
+let timeLeft = 20;
+let timeUp = false;
+const mathTimer = setInterval(()=>{
+  timeLeft--;
+  timerEl.textContent = timeLeft;
+  if(timeLeft<=0){
+    clearInterval(mathTimer);
+    timeUp = true;
+    ansInput.disabled = true; submitBtn.disabled = true;
+    document.getElementById('msg').innerHTML = `<span class="bad">Time's up! ${correct}/${qnum} correct — reload to retry.</span>`;
+  }
+}, 1000);
 function genQ(){
   const ops=['+','-','x','÷']; const op=ops[Math.floor(Math.random()*4)];
   let a,b,ans;
@@ -65,13 +81,14 @@ function genQ(){
   document.getElementById('q').textContent = `${a} ${op} ${b} = ?`;
 }
 genQ();
-document.getElementById('submitBtn').onclick = ()=>{
+submitBtn.onclick = ()=>{
+  if(timeUp) return;
   const val = parseInt(document.getElementById('ans').value);
   qnum++;
   if(val===currentAns) correct++;
   document.getElementById('ans').value='';
   if(qnum>=total){
-    if(correct>=4){ document.getElementById('msg').innerHTML=`<span class="good">${correct}/${total} correct!</span>`; unlock(); }
+    if(correct>=4){ clearInterval(mathTimer); document.getElementById('msg').innerHTML=`<span class="good">${correct}/${total} correct!</span>`; unlock(); }
     else { document.getElementById('msg').innerHTML=`<span class="bad">${correct}/${total} — try again.</span>`; qnum=0; correct=0; genQ(); }
   } else { genQ(); }
 };
