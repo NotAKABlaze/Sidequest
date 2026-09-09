@@ -32,7 +32,7 @@ input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size
 <body>
 <div class="wrap">
   <h1>📚 Word Scramble</h1>
-  <div class="sub">Library &middot; Unscramble all 3 words</div>
+  <div class="sub">Library &middot; Unscramble all 3 words (a fresh set each time)</div>
   <div id="game">
 <div class="grid" id="qs"></div>
 </div>
@@ -51,7 +51,20 @@ function unlock(){
   document.getElementById('game').style.pointerEvents = 'none';
 }
 
-const words = [["OOKB","BOOK"],["LESFH","SHELF"],["ABRILRAIN","LIBRARIAN"]];
+const wordPool = ["BOOK","SHELF","LIBRARIAN","READING","QUIET","NOVEL","AUTHOR","CHAPTER","STUDY","JOURNAL","FICTION","ARCHIVE"];
+function shuffleWord(w){
+  let arr = w.split(''), scrambled = w;
+  while(scrambled === w){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]] = [arr[j],arr[i]];
+    }
+    scrambled = arr.join('');
+  }
+  return scrambled;
+}
+const chosen = [...wordPool].sort(()=>Math.random()-0.5).slice(0,3);
+const words = chosen.map(w=>[shuffleWord(w), w]);
 let solved = 0;
 const qs = document.getElementById('qs');
 words.forEach((w,i)=>{

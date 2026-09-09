@@ -49,13 +49,19 @@ function unlock(){
   document.getElementById('game').style.pointerEvents = 'none';
 }
 
-const questions = [
+const questionPool = [
   {q:"What planet is known as the Red Planet?", opts:["Venus","Mars","Jupiter"], a:1},
   {q:"How many continents are there?", opts:["5","6","7"], a:2},
   {q:"What is the capital of Japan?", opts:["Tokyo","Seoul","Beijing"], a:0},
   {q:"H2O is the chemical formula for?", opts:["Salt","Water","Oxygen"], a:1},
-  {q:"Which is the largest ocean?", opts:["Atlantic","Indian","Pacific"], a:2}
+  {q:"Which is the largest ocean?", opts:["Atlantic","Indian","Pacific"], a:2},
+  {q:"How many legs does a spider have?", opts:["6","8","10"], a:1},
+  {q:"What gas do plants absorb from the air?", opts:["Oxygen","Nitrogen","Carbon Dioxide"], a:2},
+  {q:"What is the freezing point of water in Celsius?", opts:["0","10","32"], a:0},
+  {q:"Which organ pumps blood around the body?", opts:["Lungs","Heart","Liver"], a:1},
+  {q:"What is the tallest mountain in the world?", opts:["K2","Everest","Kilimanjaro"], a:1}
 ];
+const questions = [...questionPool].sort(()=>Math.random()-0.5).slice(0,5);
 let qi=0, correct=0;
 const wrap = document.getElementById('qWrap');
 function render(){

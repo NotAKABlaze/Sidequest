@@ -65,7 +65,7 @@ function popMole(){
   cells.forEach(c=>c.style.background='#374151');
   moleIdx = Math.floor(Math.random()*9);
   cells[moleIdx].style.background='#a3e635';
-  setTimeout(popMole, 650);
+  setTimeout(popMole, 420);
 }
 cells.forEach(c=>c.onclick=()=>{
   if(gameOver) return;

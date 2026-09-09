@@ -32,9 +32,14 @@ input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size
 <body>
 <div class="wrap">
   <h1>🧭 Bridge Maze</h1>
-  <div class="sub">Outlook Bridge &middot; Use arrow keys to reach the flag 🚩</div>
+  <div class="sub">Outlook Bridge &middot; Reach the flag 🚩 without the ghost 👻 catching you</div>
   <div id="game"><canvas id="maze" width="280" height="280" style="background:#374151;border-radius:10px;display:block;margin:0 auto;"></canvas>
-<div class="footer-note">Use arrow keys (or WASD)</div></div>
+<div style="display:grid;grid-template-columns:repeat(3,54px);gap:6px;justify-content:center;margin-top:14px;">
+  <div></div><button id="mUp">▲</button><div></div>
+  <button id="mLeft">◀</button><div></div><button id="mRight">▶</button>
+  <div></div><button id="mDown">▼</button><div></div>
+</div>
+<div class="footer-note">Arrow keys/WASD on desktop, buttons on mobile</div></div>
   <div class="msg" id="msg"></div>
   <div class="codebox" id="codebox">
     <div class="label">Completion Code</div>
@@ -50,17 +55,35 @@ function unlock(){
   document.getElementById('game').style.pointerEvents = 'none';
 }
 
-const cell=40, cols=7, rows=7;
-const grid = [
- [0,0,0,1,0,0,0],
- [1,1,0,1,0,1,0],
- [0,0,0,0,0,1,0],
- [0,1,1,1,1,1,0],
- [0,0,0,0,0,0,0],
- [0,1,1,1,1,1,0],
- [0,0,0,0,0,0,2]
+const MAZES = [
+ [
+  [0,0,0,1,0,0,0],
+  [1,1,0,1,0,1,0],
+  [0,0,0,0,0,1,0],
+  [0,1,1,1,1,1,0],
+  [0,0,0,0,0,0,0],
+  [0,1,1,1,1,1,0],
+  [0,0,0,0,0,0,2]
+ ],
+ [
+  [0,0,1,0,0,0,0],
+  [0,0,1,0,1,1,0],
+  [0,0,0,0,1,0,0],
+  [1,1,0,1,1,0,0],
+  [0,0,0,0,1,0,0],
+  [0,1,1,0,1,1,0],
+  [0,0,0,0,0,0,2]
+ ]
 ];
+const grid = MAZES[Math.floor(Math.random()*MAZES.length)];
+const cell=40, cols=7, rows=7;
 let px=0, py=0;
+function findOpenCell(preferX,preferY){
+  if(grid[preferY][preferX]===0) return {x:preferX,y:preferY};
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++) if(grid[r][c]===0) return {x:c,y:r};
+}
+const ghostStart = findOpenCell(6,0);
+let gx=ghostStart.x, gy=ghostStart.y;
 const canvas = document.getElementById('maze');
 const ctx = canvas.getContext('2d');
 function draw(){
@@ -71,20 +94,73 @@ function draw(){
   }
   ctx.fillStyle='#22d3ee';
   ctx.beginPath(); ctx.arc(px*cell+cell/2, py*cell+cell/2, 12, 0, Math.PI*2); ctx.fill();
+  ctx.font='28px sans-serif';
+  ctx.fillText('👻', gx*cell+6, gy*cell+30);
 }
 draw();
-document.addEventListener('keydown', e=>{
-  let nx=px, ny=py;
-  if(['ArrowUp','w'].includes(e.key)) ny--;
-  else if(['ArrowDown','s'].includes(e.key)) ny++;
-  else if(['ArrowLeft','a'].includes(e.key)) nx--;
-  else if(['ArrowRight','d'].includes(e.key)) nx++;
-  else return;
+function bfsNext(from, to){
+  const visited = Array.from({length:rows},()=>Array(cols).fill(false));
+  const prev = {};
+  const queue=[from]; visited[from.y][from.x]=true;
+  let found=false;
+  while(queue.length){
+    const cur=queue.shift();
+    if(cur.x===to.x && cur.y===to.y){ found=true; break; }
+    const neighbors=[{x:cur.x+1,y:cur.y},{x:cur.x-1,y:cur.y},{x:cur.x,y:cur.y+1},{x:cur.x,y:cur.y-1}];
+    for(const n of neighbors){
+      if(n.x<0||n.y<0||n.x>=cols||n.y>=rows) continue;
+      if(grid[n.y][n.x]===1) continue;
+      if(visited[n.y][n.x]) continue;
+      visited[n.y][n.x]=true;
+      prev[n.x+','+n.y]=cur;
+      queue.push(n);
+    }
+  }
+  if(!found) return from;
+  let cur=to, path=[cur];
+  while(!(cur.x===from.x && cur.y===from.y)){
+    const key=cur.x+','+cur.y;
+    if(!prev[key]) return from;
+    cur=prev[key]; path.push(cur);
+  }
+  path.reverse();
+  return path.length>1 ? path[1] : from;
+}
+let caught=false;
+function checkCatch(){
+  if(gx===px && gy===py){
+    caught=true;
+    document.getElementById('msg').innerHTML='<span class="bad">Caught by the ghost! Back to start.</span>';
+    px=0; py=0; draw();
+    setTimeout(()=>{ caught=false; }, 700);
+  }
+}
+setInterval(()=>{
+  if(caught) return;
+  const next = bfsNext({x:gx,y:gy},{x:px,y:py});
+  gx=next.x; gy=next.y;
+  draw();
+  checkCatch();
+}, 650);
+function movePlayer(dx,dy){
+  if(caught) return;
+  const nx=px+dx, ny=py+dy;
   if(nx<0||ny<0||nx>=cols||ny>=rows) return;
   if(grid[ny][nx]===1) return;
   px=nx; py=ny; draw();
-  if(grid[py][px]===2){ document.getElementById('msg').innerHTML='<span class="good">You reached the flag!</span>'; unlock(); }
+  checkCatch();
+  if(!caught && grid[py][px]===2){ document.getElementById('msg').innerHTML='<span class="good">You reached the flag!</span>'; unlock(); }
+}
+document.addEventListener('keydown', e=>{
+  if(['ArrowUp','w'].includes(e.key)) movePlayer(0,-1);
+  else if(['ArrowDown','s'].includes(e.key)) movePlayer(0,1);
+  else if(['ArrowLeft','a'].includes(e.key)) movePlayer(-1,0);
+  else if(['ArrowRight','d'].includes(e.key)) movePlayer(1,0);
 });
+document.getElementById('mUp').onclick=()=>movePlayer(0,-1);
+document.getElementById('mDown').onclick=()=>movePlayer(0,1);
+document.getElementById('mLeft').onclick=()=>movePlayer(-1,0);
+document.getElementById('mRight').onclick=()=>movePlayer(1,0);
 
 </script>
 </body>

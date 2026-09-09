@@ -53,8 +53,17 @@ function unlock(){
 
 let pos=0, dir=1, hits=0;
 const beat = document.getElementById('beat');
+const zone = document.getElementById('zone');
+function randomizeZone(){
+  const width = 20;
+  const left = Math.floor(Math.random()*(100-width));
+  zone.style.left = left+'%';
+  zone.style.width = width+'%';
+  return {left, right: left+width};
+}
+let currentZone = randomizeZone();
 function loop(){
-  pos += dir*3.5;
+  pos += dir*2;
   if(pos>=100||pos<=0) dir*=-1;
   beat.style.marginLeft = pos+'%';
   beat.style.width='4px';
@@ -62,13 +71,14 @@ function loop(){
 }
 loop();
 document.getElementById('drumBtn').onclick = ()=>{
-  if(pos>=40 && pos<=60){
+  if(pos>=currentZone.left && pos<=currentZone.right){
     hits++; document.getElementById('hits').textContent=hits;
     document.getElementById('msg').innerHTML='<span class="good">On beat!</span>';
     if(hits>=8){ document.getElementById('msg').innerHTML='<span class="good">Rhythm mastered!</span>'; unlock(); }
   } else {
     document.getElementById('msg').innerHTML='<span class="bad">Off beat — watch the marker.</span>';
   }
+  currentZone = randomizeZone();
 };
 
 </script>

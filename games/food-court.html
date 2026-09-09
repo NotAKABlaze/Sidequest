@@ -32,9 +32,13 @@ input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size
 <body>
 <div class="wrap">
   <h1>🍔 Catch the Food</h1>
-  <div class="sub">Food Court &middot; Use left/right arrows to catch 10 items</div>
-  <div id="game"><canvas id="catch" width="280" height="300" style="background:#374151;border-radius:10px;display:block;margin:0 auto;"></canvas>
-<div>Caught: <span id="caught">0</span>/10</div></div>
+  <div class="sub">Food Court &middot; Drag your finger, use arrow keys, or the buttons — catch 10 items</div>
+  <div id="game"><canvas id="catch" width="280" height="300" style="background:#374151;border-radius:10px;display:block;margin:0 auto;touch-action:none;"></canvas>
+<div style="display:flex;gap:16px;justify-content:center;margin-top:10px;">
+  <button id="foodLeft">◀ Left</button>
+  <button id="foodRight">Right ▶</button>
+</div>
+<div style="margin-top:10px;">Caught: <span id="caught">0</span>/10</div></div>
   <div class="msg" id="msg"></div>
   <div class="codebox" id="codebox">
     <div class="label">Completion Code</div>
@@ -59,6 +63,16 @@ document.addEventListener('keydown', e=>{
   if(e.key==='ArrowLeft') basketX=Math.max(0,basketX-20);
   if(e.key==='ArrowRight') basketX=Math.min(240,basketX+20);
 });
+document.getElementById('foodLeft').onclick=()=>{ basketX=Math.max(0,basketX-30); };
+document.getElementById('foodRight').onclick=()=>{ basketX=Math.min(240,basketX+30); };
+function trackTouch(e){
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touchX = e.touches[0].clientX - rect.left;
+  basketX = Math.max(0, Math.min(240, touchX - 20));
+}
+canvas.addEventListener('touchstart', trackTouch, {passive:false});
+canvas.addEventListener('touchmove', trackTouch, {passive:false});
 function loop(){
   ctx.clearRect(0,0,280,300);
   item.y+=3;

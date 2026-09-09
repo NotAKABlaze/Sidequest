@@ -32,8 +32,9 @@ input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size
 <body>
 <div class="wrap">
   <h1>⌨️ Typing Speed</h1>
-  <div class="sub">Rent-a-Laptop Desk (Library) &middot; Type the sentence exactly, then submit</div>
-  <div id="game"><div style="background:#374151;padding:10px;border-radius:8px;margin-bottom:10px;" id="target">the quick campus fox borrows a laptop daily</div>
+  <div class="sub">Rent-a-Laptop Desk (Library) &middot; Type the sentence exactly within 30 seconds</div>
+  <div id="game"><div style="background:#374151;padding:10px;border-radius:8px;margin-bottom:10px;" id="target"></div>
+<div style="margin-bottom:8px;">Time left: <span id="timerDisplay">30</span>s</div>
 <input type="text" id="typeInput" placeholder="Start typing...">
 <div style="margin-top:10px;"><button id="typeSubmit">Submit</button></div></div>
   <div class="msg" id="msg"></div>
@@ -51,10 +52,33 @@ function unlock(){
   document.getElementById('game').style.pointerEvents = 'none';
 }
 
-const target = document.getElementById('target').textContent;
-document.getElementById('typeSubmit').onclick = ()=>{
-  const val = document.getElementById('typeInput').value.trim();
+const sentencePool = [
+  "the quick campus fox borrows a laptop daily",
+  "please return the laptop before five pm",
+  "library laptops require a valid student card",
+  "typing fast helps you finish sooner",
+  "remember to save your work every few minutes"
+];
+const target = sentencePool[Math.floor(Math.random()*sentencePool.length)];
+document.getElementById('target').textContent = target;
+const input = document.getElementById('typeInput');
+const submitBtn = document.getElementById('typeSubmit');
+const timerEl = document.getElementById('timerDisplay');
+let timeLeft = 30;
+const timer = setInterval(()=>{
+  timeLeft--;
+  timerEl.textContent = timeLeft;
+  if(timeLeft<=0){
+    clearInterval(timer);
+    input.disabled = true; submitBtn.disabled = true;
+    document.getElementById('msg').innerHTML = '<span class="bad">Time is up! Reload the page to retry.</span>';
+  }
+}, 1000);
+submitBtn.onclick = ()=>{
+  const val = input.value.trim();
   if(val === target){
+    clearInterval(timer);
+    input.disabled = true; submitBtn.disabled = true;
     document.getElementById('msg').innerHTML='<span class="good">Perfect match!</span>'; unlock();
   } else {
     document.getElementById('msg').innerHTML='<span class="bad">Not exact — check spelling and try again.</span>';

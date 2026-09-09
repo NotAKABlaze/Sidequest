@@ -53,7 +53,8 @@ function unlock(){
   document.getElementById('game').style.pointerEvents = 'none';
 }
 
-const pairs = [["Engineer","Building things"],["Designer","Creating visuals"],["Accountant","Managing numbers"],["Nurse","Caring for patients"]];
+const jobPool = [["Engineer","Building things"],["Designer","Creating visuals"],["Accountant","Managing numbers"],["Nurse","Caring for patients"],["Teacher","Educating students"],["Chef","Preparing meals"],["Lawyer","Interpreting law"],["Pilot","Flying aircraft"]];
+const pairs = [...jobPool].sort(()=>Math.random()-0.5).slice(0,4);
 let jobs = pairs.map(p=>p[0]);
 let skills = pairs.map(p=>p[1]);
 skills.sort(()=>Math.random()-0.5);

@@ -56,9 +56,11 @@ function unlock(){
   document.getElementById('game').style.pointerEvents = 'none';
 }
 
-let pw=0, cw=0;
+let pw=0, cw=0, decided=false;
 const beats={rock:'scissors',paper:'rock',scissors:'paper'};
-document.querySelectorAll('button[data-c]').forEach(b=>b.onclick=()=>{
+const rpsButtons = document.querySelectorAll('button[data-c]');
+rpsButtons.forEach(b=>b.onclick=()=>{
+  if(decided) return;
   const choices=['rock','paper','scissors'];
   const user=b.dataset.c, comp=choices[Math.floor(Math.random()*3)];
   let result;
@@ -68,8 +70,13 @@ document.querySelectorAll('button[data-c]').forEach(b=>b.onclick=()=>{
   document.getElementById('pw').textContent=pw;
   document.getElementById('cw').textContent=cw;
   document.getElementById('msg').textContent = `You: ${user} vs Computer: ${comp} — ${result}`;
-  if(pw>=2){ document.getElementById('msg').innerHTML+=' <span class="good">You won the match!</span>'; unlock(); }
-  else if(cw>=2){ document.getElementById('msg').innerHTML+=' <span class="bad">Computer won — reload to retry.</span>'; }
+  if(pw>=2){
+    decided=true; rpsButtons.forEach(x=>x.disabled=true);
+    document.getElementById('msg').innerHTML+=' <span class="good">You won the match!</span>'; unlock();
+  } else if(cw>=2){
+    decided=true; rpsButtons.forEach(x=>x.disabled=true);
+    document.getElementById('msg').innerHTML+=' <span class="bad">Computer won — reload to retry.</span>';
+  }
 });
 
 </script>
