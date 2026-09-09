@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧭 Bridge Maze</title>
+<style>
+:root{--bg:#111827;--card:#1f2937;--accent:#22d3ee;--accent2:#f472b6;--text:#f9fafb;--muted:#9ca3af;--good:#34d399;--bad:#f87171;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#111827,#1e293b);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.wrap{max-width:480px;width:100%;background:var(--card);border-radius:20px;padding:28px 24px;box-shadow:0 20px 50px rgba(0,0,0,.5);}
+h1{font-size:1.4rem;margin:0 0 4px;}
+.sub{color:var(--muted);font-size:.9rem;margin-bottom:18px;}
+button{background:var(--accent);color:#111827;border:none;border-radius:12px;padding:12px 18px;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .1s;}
+button:hover{transform:scale(1.03);}
+button:disabled{opacity:.5;cursor:not-allowed;}
+.tile{background:#374151;border-radius:10px;transition:.15s;}
+.msg{margin-top:14px;font-size:.95rem;min-height:1.4em;}
+.good{color:var(--good);font-weight:700;}
+.bad{color:var(--bad);font-weight:700;}
+.codebox{display:none;margin-top:20px;text-align:center;background:#064e3b;border:2px solid var(--good);border-radius:14px;padding:20px;}
+.codebox.show{display:block;}
+.codebox .label{color:#a7f3d0;font-size:.85rem;letter-spacing:1px;text-transform:uppercase;}
+.codebox .code{font-size:2rem;font-weight:800;letter-spacing:3px;margin-top:6px;color:#ffffff;}
+.grid{display:grid;gap:8px;margin:16px 0;}
+input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size:1rem;background:#374151;color:var(--text);}
+.bar{height:14px;background:#374151;border-radius:7px;overflow:hidden;margin:10px 0;}
+.bar > div{height:100%;background:var(--accent);width:0%;}
+.footer-note{margin-top:16px;font-size:.75rem;color:var(--muted);text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧭 Bridge Maze</h1>
+  <div class="sub">Outlook Bridge &middot; Use arrow keys to reach the flag 🚩</div>
+  <div id="game"><canvas id="maze" width="280" height="280" style="background:#374151;border-radius:10px;display:block;margin:0 auto;"></canvas>
+<div class="footer-note">Use arrow keys (or WASD)</div></div>
+  <div class="msg" id="msg"></div>
+  <div class="codebox" id="codebox">
+    <div class="label">Completion Code</div>
+    <div class="code">BRG-4470</div>
+    <div class="footer-note">Show this screen to the event organizer</div>
+  </div>
+</div>
+<script>
+const CODE = "BRG-4470";
+function unlock(){
+  document.getElementById('codebox').classList.add('show');
+  document.getElementById('game').style.opacity = '0.4';
+  document.getElementById('game').style.pointerEvents = 'none';
+}
+
+const cell=40, cols=7, rows=7;
+const grid = [
+ [0,0,0,1,0,0,0],
+ [1,1,0,1,0,1,0],
+ [0,0,0,0,0,1,0],
+ [0,1,1,1,1,1,0],
+ [0,0,0,0,0,0,0],
+ [0,1,1,1,1,1,0],
+ [0,0,0,0,0,0,2]
+];
+let px=0, py=0;
+const canvas = document.getElementById('maze');
+const ctx = canvas.getContext('2d');
+function draw(){
+  ctx.clearRect(0,0,280,280);
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    if(grid[r][c]===1){ ctx.fillStyle='#111827'; ctx.fillRect(c*cell,r*cell,cell,cell); }
+    if(grid[r][c]===2){ ctx.fillStyle='#34d399'; ctx.fillRect(c*cell,r*cell,cell,cell); }
+  }
+  ctx.fillStyle='#22d3ee';
+  ctx.beginPath(); ctx.arc(px*cell+cell/2, py*cell+cell/2, 12, 0, Math.PI*2); ctx.fill();
+}
+draw();
+document.addEventListener('keydown', e=>{
+  let nx=px, ny=py;
+  if(['ArrowUp','w'].includes(e.key)) ny--;
+  else if(['ArrowDown','s'].includes(e.key)) ny++;
+  else if(['ArrowLeft','a'].includes(e.key)) nx--;
+  else if(['ArrowRight','d'].includes(e.key)) nx++;
+  else return;
+  if(nx<0||ny<0||nx>=cols||ny>=rows) return;
+  if(grid[ny][nx]===1) return;
+  px=nx; py=ny; draw();
+  if(grid[py][px]===2){ document.getElementById('msg').innerHTML='<span class="good">You reached the flag!</span>'; unlock(); }
+});
+
+</script>
+</body>
+</html>
