@@ -32,14 +32,15 @@ input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size
 <body>
 <div class="wrap">
   <h1>⚽ Penalty Shootout</h1>
-  <div class="sub">Football Field &middot; Time your aim and beat the keeper — score 3/5</div>
-  <div id="game"><div style="position:relative;height:60px;background:#166534;border-radius:10px;overflow:hidden;">
+  <div class="sub">Football Field &middot; Time your aim and beat the diving goalie — score 3/5</div>
+  <div id="game"><div style="position:relative;height:90px;background:#166534;border-radius:10px;overflow:hidden;">
   <div style="display:flex;height:100%;">
     <div style="flex:1;border-right:2px solid #052e14;"></div>
     <div style="flex:1;border-right:2px solid #052e14;"></div>
     <div style="flex:1;"></div>
   </div>
-  <div id="ballMarker" style="position:absolute;top:20px;width:20px;height:20px;background:#fff;border-radius:50%;"></div>
+  <div id="goalie" style="position:absolute;bottom:6px;left:41%;width:34px;height:34px;font-size:30px;line-height:34px;text-align:center;transition:left .5s cubic-bezier(.34,1.56,.64,1), transform .5s;">🧤</div>
+  <div id="ballMarker" style="position:absolute;top:14px;left:0%;width:26px;height:26px;font-size:24px;line-height:26px;text-align:center;">⚽</div>
 </div>
 <button id="aimBtn" style="margin-top:12px;">Lock Aim &amp; Kick</button>
 <div style="margin-top:10px;">Goals: <span id="goals">0</span>/5 shots &nbsp; Shot: <span id="att">0</span>/5</div></div>
@@ -60,11 +61,13 @@ function unlock(){
 
 let pos=0, dir=1, goals=0, att=0, running=true, aiming=true;
 const marker = document.getElementById('ballMarker');
+const goalie = document.getElementById('goalie');
+const zoneCenters = [8, 41, 74];
 function loop(){
   if(!running) return;
   if(aiming){
-    pos += dir*3;
-    if(pos>=94||pos<=0) dir*=-1;
+    pos += dir*1.4;
+    if(pos>=90||pos<=0) dir*=-1;
     marker.style.left = pos+'%';
   }
   requestAnimationFrame(loop);
@@ -75,18 +78,23 @@ document.getElementById('aimBtn').onclick = ()=>{
   aiming=false; att++;
   const zone = pos<33 ? 0 : (pos<66 ? 1 : 2);
   const keeperZone = Math.floor(Math.random()*3);
-  const isGoal = zone !== keeperZone;
-  if(isGoal) goals++;
-  document.getElementById('goals').textContent=goals;
-  document.getElementById('att').textContent=att;
-  document.getElementById('msg').textContent = isGoal ? 'GOAL! The keeper dove the wrong way.' : 'Saved! The keeper read your aim.';
+  goalie.style.left = zoneCenters[keeperZone]+'%';
+  goalie.style.transform = keeperZone===0 ? 'rotate(-25deg)' : (keeperZone===2 ? 'rotate(25deg)' : 'rotate(0deg)');
   setTimeout(()=>{
-    if(att>=5){
-      running=false;
-      if(goals>=3){ document.getElementById('msg').innerHTML='<span class="good">Shootout won!</span>'; unlock(); }
-      else { document.getElementById('msg').innerHTML+=' <span class="bad">Not enough goals — reload to retry.</span>'; }
-    } else { aiming=true; }
-  }, 900);
+    const isGoal = zone !== keeperZone;
+    if(isGoal) goals++;
+    document.getElementById('goals').textContent=goals;
+    document.getElementById('att').textContent=att;
+    document.getElementById('msg').textContent = isGoal ? 'GOAL! The keeper dove the wrong way.' : 'Saved! The keeper read your aim.';
+    setTimeout(()=>{
+      goalie.style.left='41%'; goalie.style.transform='rotate(0deg)';
+      if(att>=5){
+        running=false;
+        if(goals>=3){ document.getElementById('msg').innerHTML='<span class="good">Shootout won!</span>'; unlock(); }
+        else { document.getElementById('msg').innerHTML+=' <span class="bad">Not enough goals — reload to retry.</span>'; }
+      } else { aiming=true; }
+    }, 900);
+  }, 500);
 };
 
 </script>
