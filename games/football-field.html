@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ Penalty Shootout</title>
+<style>
+:root{--bg:#111827;--card:#1f2937;--accent:#22d3ee;--accent2:#f472b6;--text:#f9fafb;--muted:#9ca3af;--good:#34d399;--bad:#f87171;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#111827,#1e293b);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.wrap{max-width:480px;width:100%;background:var(--card);border-radius:20px;padding:28px 24px;box-shadow:0 20px 50px rgba(0,0,0,.5);}
+h1{font-size:1.4rem;margin:0 0 4px;}
+.sub{color:var(--muted);font-size:.9rem;margin-bottom:18px;}
+button{background:var(--accent);color:#111827;border:none;border-radius:12px;padding:12px 18px;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .1s;}
+button:hover{transform:scale(1.03);}
+button:disabled{opacity:.5;cursor:not-allowed;}
+.tile{background:#374151;border-radius:10px;transition:.15s;}
+.msg{margin-top:14px;font-size:.95rem;min-height:1.4em;}
+.good{color:var(--good);font-weight:700;}
+.bad{color:var(--bad);font-weight:700;}
+.codebox{display:none;margin-top:20px;text-align:center;background:#064e3b;border:2px solid var(--good);border-radius:14px;padding:20px;}
+.codebox.show{display:block;}
+.codebox .label{color:#a7f3d0;font-size:.85rem;letter-spacing:1px;text-transform:uppercase;}
+.codebox .code{font-size:1.5rem;font-weight:800;letter-spacing:.5px;margin-top:6px;color:#ffffff;line-height:1.3;}
+.grid{display:grid;gap:8px;margin:16px 0;}
+input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size:1rem;background:#374151;color:var(--text);}
+.bar{height:14px;background:#374151;border-radius:7px;overflow:hidden;margin:10px 0;}
+.bar > div{height:100%;background:var(--accent);width:0%;}
+.footer-note{margin-top:16px;font-size:.75rem;color:var(--muted);text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚽ Penalty Shootout</h1>
+  <div class="sub">Football Field &middot; Time your aim and beat the diving goalie — score 3/5</div>
+  <div id="game"><div style="position:relative;height:90px;background:#166534;border-radius:10px;overflow:hidden;">
+  <div style="display:flex;height:100%;">
+    <div style="flex:1;border-right:2px solid #052e14;"></div>
+    <div style="flex:1;border-right:2px solid #052e14;"></div>
+    <div style="flex:1;"></div>
+  </div>
+  <div id="goalie" style="position:absolute;bottom:6px;left:41%;width:34px;height:34px;font-size:30px;line-height:34px;text-align:center;transition:left .5s cubic-bezier(.34,1.56,.64,1), transform .5s;">🧤</div>
+  <div id="ballMarker" style="position:absolute;top:14px;left:0%;width:26px;height:26px;font-size:24px;line-height:26px;text-align:center;">⚽</div>
+</div>
+<button id="aimBtn" style="margin-top:12px;">Lock Aim &amp; Kick</button>
+<div style="margin-top:10px;">Goals: <span id="goals">0</span>/5 shots &nbsp; Shot: <span id="att">0</span>/5</div></div>
+  <div class="msg" id="msg"></div>
+  <div class="codebox" id="codebox">
+    <div class="label">Answer</div>
+    <div class="code">Football Field (Outside)</div>
+    <div class="footer-note">Go take a selfie at this location and come back to the sidequest booth</div>
+  </div>
+</div>
+<script>
+const CODE = "Football Field (Outside)";
+function unlock(){
+  document.getElementById('codebox').classList.add('show');
+  document.getElementById('game').style.opacity = '0.4';
+  document.getElementById('game').style.pointerEvents = 'none';
+}
+
+let pos=0, dir=1, goals=0, att=0, running=true, aiming=true;
+const marker = document.getElementById('ballMarker');
+const goalie = document.getElementById('goalie');
+const zoneCenters = [8, 41, 74];
+function loop(){
+  if(!running) return;
+  if(aiming){
+    pos += dir*1.4;
+    if(pos>=90||pos<=0) dir*=-1;
+    marker.style.left = pos+'%';
+  }
+  requestAnimationFrame(loop);
+}
+loop();
+document.getElementById('aimBtn').onclick = ()=>{
+  if(!aiming || att>=5) return;
+  aiming=false; att++;
+  const zone = pos<33 ? 0 : (pos<66 ? 1 : 2);
+  const keeperZone = Math.floor(Math.random()*3);
+  goalie.style.left = zoneCenters[keeperZone]+'%';
+  goalie.style.transform = keeperZone===0 ? 'rotate(-25deg)' : (keeperZone===2 ? 'rotate(25deg)' : 'rotate(0deg)');
+  setTimeout(()=>{
+    const isGoal = zone !== keeperZone;
+    if(isGoal) goals++;
+    document.getElementById('goals').textContent=goals;
+    document.getElementById('att').textContent=att;
+    document.getElementById('msg').textContent = isGoal ? 'GOAL! The keeper dove the wrong way.' : 'Saved! The keeper read your aim.';
+    setTimeout(()=>{
+      goalie.style.left='41%'; goalie.style.transform='rotate(0deg)';
+      if(att>=5){
+        running=false;
+        if(goals>=3){ document.getElementById('msg').innerHTML='<span class="good">Shootout won!</span>'; unlock(); }
+        else { document.getElementById('msg').innerHTML+=' <span class="bad">Not enough goals — reload to retry.</span>'; }
+      } else { aiming=true; }
+    }, 900);
+  }, 500);
+};
+
+</script>
+</body>
+</html>
