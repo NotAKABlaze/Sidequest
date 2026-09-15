@@ -32,11 +32,23 @@ input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size
 <body>
 <div class="wrap">
   <h1>⌨️ Typing Speed</h1>
-  <div class="sub">Laptop Rental Area &middot; Type the sentence exactly within 30 seconds</div>
-  <div id="game"><div style="background:#374151;padding:10px;border-radius:8px;margin-bottom:10px;" id="target"></div>
-<div style="margin-bottom:8px;">Time left: <span id="timerDisplay">30</span>s</div>
-<input type="text" id="typeInput" placeholder="Start typing...">
-<div style="margin-top:10px;"><button id="typeSubmit">Submit</button></div></div>
+  <div class="sub">3 rounds, each faster than the last — 30s, then 20s, then 15s</div>
+  <div id="game">
+<div id="startScreen">
+  <div style="margin-bottom:12px;color:var(--muted);font-size:.9rem;">3 rounds, 3 different sentences. Time drops each round: 30s, 20s, then 15s. If you run out of time, you retry that same round.</div>
+  <button id="startBtn">Start Round 1</button>
+</div>
+<div id="typingGame" style="display:none;">
+  <div style="margin-bottom:8px;font-weight:700;">Round <span id="roundNum">1</span> of 3</div>
+  <div style="background:#374151;padding:10px;border-radius:8px;margin-bottom:10px;" id="target"></div>
+  <div style="margin-bottom:8px;">Time left: <span id="timerDisplay"></span>s</div>
+  <input type="text" id="typeInput" placeholder="Start typing...">
+  <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+    <button id="typeSubmit">Submit</button>
+    <button id="retryBtn" style="display:none;background:#4b5563;color:#f9fafb;">Retry This Round</button>
+  </div>
+</div>
+</div>
   <div class="msg" id="msg"></div>
   <div class="codebox" id="codebox">
     <div class="label">Answer</div>
@@ -59,29 +71,72 @@ const sentencePool = [
   "typing fast helps you finish sooner",
   "remember to save your work every few minutes"
 ];
-const target = sentencePool[Math.floor(Math.random()*sentencePool.length)];
-document.getElementById('target').textContent = target;
+// pick 3 distinct sentences, one per round, so no round repeats another
+const roundSentences = [...sentencePool].sort(()=>Math.random()-0.5).slice(0,3);
+const roundTimes = [30, 20, 15];
+let currentRound = 0;
+let currentTarget = '';
+let timer;
+let timeLeft;
+
+const startScreen = document.getElementById('startScreen');
+const gameDiv = document.getElementById('typingGame');
 const input = document.getElementById('typeInput');
 const submitBtn = document.getElementById('typeSubmit');
+const retryBtn = document.getElementById('retryBtn');
 const timerEl = document.getElementById('timerDisplay');
-let timeLeft = 30;
-const timer = setInterval(()=>{
-  timeLeft--;
+const roundNumEl = document.getElementById('roundNum');
+const targetEl = document.getElementById('target');
+
+document.getElementById('startBtn').onclick = ()=>{
+  startScreen.style.display = 'none';
+  gameDiv.style.display = 'block';
+  beginRound();
+};
+
+function beginRound(){
+  currentTarget = roundSentences[currentRound];
+  targetEl.textContent = currentTarget;
+  roundNumEl.textContent = currentRound + 1;
+  timeLeft = roundTimes[currentRound];
   timerEl.textContent = timeLeft;
-  if(timeLeft<=0){
-    clearInterval(timer);
-    input.disabled = true; submitBtn.disabled = true;
-    document.getElementById('msg').innerHTML = '<span class="bad">Time is up! Reload the page to retry.</span>';
-  }
-}, 1000);
+  input.value = ''; input.disabled = false; submitBtn.disabled = false;
+  retryBtn.style.display = 'none';
+  document.getElementById('msg').innerHTML = '';
+  clearInterval(timer);
+  timer = setInterval(()=>{
+    timeLeft--;
+    timerEl.textContent = timeLeft;
+    if(timeLeft<=0){
+      clearInterval(timer);
+      input.disabled = true; submitBtn.disabled = true;
+      retryBtn.style.display = 'inline-block';
+      document.getElementById('msg').innerHTML = `<span class="bad">Time is up on round ${currentRound+1}! Try that round again.</span>`;
+    }
+  }, 1000);
+}
+
+retryBtn.onclick = ()=>{
+  beginRound();
+};
+
 submitBtn.onclick = ()=>{
   const val = input.value.trim();
-  if(val === target){
+  if(val === currentTarget){
     clearInterval(timer);
-    input.disabled = true; submitBtn.disabled = true;
-    document.getElementById('msg').innerHTML='<span class="good">Perfect match!</span>'; unlock();
+    const completedRound = currentRound + 1;
+    if(completedRound < 3){
+      input.disabled = true; submitBtn.disabled = true;
+      currentRound++;
+      document.getElementById('msg').innerHTML = `<span class="good">Round ${completedRound} passed! Starting round ${currentRound+1}...</span>`;
+      setTimeout(beginRound, 1200);
+    } else {
+      input.disabled = true; submitBtn.disabled = true;
+      document.getElementById('msg').innerHTML = '<span class="good">All 3 rounds complete!</span>';
+      unlock();
+    }
   } else {
-    document.getElementById('msg').innerHTML='<span class="bad">Not exact — check spelling and try again.</span>';
+    document.getElementById('msg').innerHTML = '<span class="bad">Not exact — check spelling and try again.</span>';
   }
 };
 

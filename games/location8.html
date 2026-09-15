@@ -32,7 +32,7 @@ input[type=text]{width:100%;padding:10px;border-radius:8px;border:none;font-size
 <body>
 <div class="wrap">
   <h1>⚡ Reaction Test</h1>
-  <div class="sub">Exhibition Hall &middot; Pass twice — round 1 under 300ms, round 2 under 250ms</div>
+  <div class="sub">Pass twice — round 1 under 350ms, round 2 under 300ms</div>
   <div id="game">
 <div id="box" style="height:160px;border-radius:14px;background:#374151;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;">Click Start</div>
 </div>
@@ -53,7 +53,7 @@ function unlock(){
 
 const box = document.getElementById('box');
 let state = 'idle'; let timer; let startTime; let stage = 1;
-const thresholds = {1:300, 2:250};
+const thresholds = {1:350, 2:300};
 function startRound(){
   state='waiting'; box.style.background='#374151'; box.textContent='Wait for green...';
   const delay = 1000 + Math.random()*2500;
@@ -67,7 +67,7 @@ box.onclick = ()=>{
     const threshold = thresholds[stage];
     if(rt < threshold){
       if(stage===1){
-        document.getElementById('msg').innerHTML = `<span class="good">Round 1 passed (${rt}ms)! Now beat 250ms.</span>`;
+        document.getElementById('msg').innerHTML = `<span class="good">Round 1 passed (${rt}ms)! Now beat 300ms.</span>`;
         stage = 2; state='idle'; box.textContent='Click Start'; box.style.background='#374151';
       } else {
         document.getElementById('msg').innerHTML = `<span class="good">Round 2 passed (${rt}ms)! You're fast.</span>`;
